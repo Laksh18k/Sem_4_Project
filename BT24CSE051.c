@@ -69,6 +69,94 @@ float calculateDistance(int x1, int y1, int x2, int y2) {
     return sqrt(pow(x2 - x1, 2) + pow(y2 - y1, 2));
 }
 
+
+/// File handling
+
+void saveDrivers(Driver *head) {
+    FILE *fp = fopen("drivers.csv", "w");
+    if (!fp) return;
+    // Header
+    fprintf(fp, "id,name,type,status,x,y,earnings\n");
+    while (head) {
+        fprintf(fp, "%d,%s,%d,%d,%d,%d,%.2f\n", 
+                head->d_Id, head->name, head->v_Type, head->d_Status, 
+                head->loc.x, head->loc.y, head->total_Earnings);
+        head = head->next;
+    }
+    fclose(fp);
+}
+
+void loadDrivers(Driver **head) {
+    FILE *fp = fopen("drivers.csv", "r");
+    if (!fp) return;
+    char line[200];
+    fgets(line, 200, fp); // Skip header
+    while (fgets(line, 200, fp)) {
+        Driver *newDriver = (Driver *)malloc(sizeof(Driver));
+        sscanf(line, "%d,%[^,],%u,%u,%d,%d,%f", 
+               &newDriver->d_Id, newDriver->name, (unsigned int*)&newDriver->v_Type, 
+               (unsigned int*)&newDriver->d_Status, &newDriver->loc.x, &newDriver->loc.y, 
+               &newDriver->total_Earnings);
+        newDriver->next = *head;
+        *head = newDriver;
+    }
+    fclose(fp);
+}
+
+void savePassengers(Passenger *head) {
+    FILE *fp = fopen("passengers.csv", "w");
+    if (!fp) return;
+    fprintf(fp, "id,name,number,frequency\n");
+    while (head) {
+        fprintf(fp, "%d,%s,%s,%d\n", head->p_Id, head->name, head->number, head->frequency);
+        head = head->next;
+    }
+    fclose(fp);
+}
+
+void loadPassengers(Passenger **head) {
+    FILE *fp = fopen("passengers.csv", "r");
+    if (!fp) return;
+    char line[200];
+    fgets(line, 200, fp); // Skip header
+    while (fgets(line, 200, fp)) {
+        Passenger *newNode = (Passenger*)malloc(sizeof(Passenger));
+        sscanf(line, "%d,%[^,],%[^,],%d", &newNode->p_Id, newNode->name, newNode->number, &newNode->frequency);
+        newNode->next = *head;
+        *head = newNode;
+    }
+    fclose(fp);
+}
+
+void saveBookings(Booking *head) {
+    FILE *fp = fopen("bookings.csv", "w");
+    if (!fp) return;
+    fprintf(fp, "b_id,d_id,p_id,type,dist,fare\n");
+    while (head) {
+        fprintf(fp, "%d,%d,%d,%d,%.2f,%.2f\n", 
+                head->b_Id, head->d_Id, head->p_Id, head->v_Type, head->distance, head->fare);
+        if (head->b_Id >= BookingId) BookingId = head->b_Id + 1; // Sync ID tracker
+        head = head->next;
+    }
+    fclose(fp);
+}
+
+void loadBookings(Booking **head) {
+    FILE *fp = fopen("bookings.csv", "r");
+    if (!fp) return;
+    char line[200];
+    fgets(line, 200, fp);
+    while (fgets(line, 200, fp)) {
+        Booking *newB = (Booking*)malloc(sizeof(Booking));
+        sscanf(line, "%d,%d,%d,%u,%f,%f", 
+               &newB->b_Id, &newB->d_Id, &newB->p_Id, (unsigned int*)&newB->v_Type, 
+               &newB->distance, &newB->fare);
+        newB->next = *head;
+        *head = newB;
+        if (newB->b_Id >= BookingId) BookingId = newB->b_Id + 1;
+    }
+    fclose(fp);
+}
 // main functions
 void addDriver(Driver **head, int id, char name[], int type, int x, int y) {
     Driver *newDriver = (Driver *)malloc(sizeof(Driver));
@@ -150,6 +238,7 @@ void completeRide(Driver *dHead, Passenger *pHead, Booking *bHead, int booking_i
     else fare=distance*5;
     Driver* driver=findDriverByID(dHead,booking->d_Id);
     driver->total_Earnings+=fare;
+    booking->fare=fare;
     Passenger* pass=findPassengerByID(pHead,booking->p_Id);
     pass->frequency=pass->frequency+1;
     driver->d_Status=Free;
@@ -214,6 +303,7 @@ void displayAvailableVehicles(Driver *dHead){
             printf("Vehicle:-%d\n",dHead->v_Type);
             printf("Location:- %d %d\n",dHead->loc.x,dHead->loc.y);
         }
+        dHead=dHead->next;
     }
 }
 
@@ -266,29 +356,29 @@ int main() {
     Passenger *pHead = NULL;
     Booking *bHead = NULL;
 
-    int choice;
+    loadDrivers(&dHead);
+    loadPassengers(&pHead);
+    loadBookings(&bHead);
 
+    int choice;
     while (1) {
-        printf("\n===== Ride Hailing System =====\n");
-        printf("1. Add Driver\n");
-        printf("2. Add Passenger\n");
-        printf("3. Request Ride\n");
-        printf("4. Complete Ride\n");
-        printf("5. Display Top Drivers\n");
-        printf("6. Display Frequent Pairs\n");
-        printf("7. Display Available Vehicles\n");
-        printf("8. Update Driver Location\n");
-        printf("9. Delete Driver\n");
-        printf("10. Display Booking History\n");
-        printf("0. Exit\n");
+        printf("\n===== Ride Hailing System (CSV Enabled) =====\n");
+        printf("1. Add Driver          2. Add Passenger\n");
+        printf("3. Request Ride        4. Complete Ride\n");
+        printf("5. Top Drivers         6. Frequent Pairs\n");
+        printf("7. Available Vehicles  8. Update Location\n");
+        printf("9. Delete Driver       10. History\n");
+        printf("0. Save & Exit\n");
         printf("Enter choice: ");
         scanf("%d", &choice);
 
         if (choice == 0) {
-            printf("Exiting...\n");
+            printf("Saving data and exiting...\n");
+            saveDrivers(dHead);
+            savePassengers(pHead);
+            saveBookings(bHead);
             break;
         }
-
         switch (choice) {
 
             case 1: {

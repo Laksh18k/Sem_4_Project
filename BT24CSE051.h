@@ -75,4 +75,12 @@ float calculateDistance(int x1, int y1, int x2, int y2);
 Driver* split(Driver* head);
 Driver* merge(Driver* a, Driver* b);
 Driver* mergeSortDrivers(Driver* head);
+
+// File handling
+void saveDrivers(Driver *head);
+void loadDrivers(Driver **head);
+void savePassengers(Passenger *head);
+void loadPassengers(Passenger **head);
+void saveBookings(Booking *head);
+void loadBookings(Booking **head);
 #endif
