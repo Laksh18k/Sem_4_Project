@@ -1,6 +1,5 @@
 #include "BT24CSE051.h"
 
-
 // helpers
 Driver* split(Driver* head) {
     Driver *slow=head, *fast=head->next;
@@ -104,7 +103,7 @@ void loadDrivers(Driver **head) {
 }
 
 void savePassengers(Passenger *head) {
-    FILE *fp = fopen("passengers.csv", "w");
+    FILE *fp = fopen("passenger.csv", "w");
     if (!fp) return;
     fprintf(fp, "id,name,number,frequency\n");
     while (head) {
@@ -115,10 +114,10 @@ void savePassengers(Passenger *head) {
 }
 
 void loadPassengers(Passenger **head) {
-    FILE *fp = fopen("passengers.csv", "r");
+    FILE *fp = fopen("passenger.csv", "r");
     if (!fp) return;
     char line[200];
-    fgets(line, 200, fp); // Skip header
+    fgets(line, 200, fp);
     while (fgets(line, 200, fp)) {
         Passenger *newNode = (Passenger*)malloc(sizeof(Passenger));
         sscanf(line, "%d,%[^,],%[^,],%d", &newNode->p_Id, newNode->name, newNode->number, &newNode->frequency);
