@@ -187,7 +187,7 @@ Driver* findNearestVehicle(Driver *dHead, int p_x, int p_y, int prefType) {
 
     while (dHead) {
         if (dHead->d_Status == 0 &&
-           (prefType == -1 || dHead->v_Type == prefType)) {
+           (prefType == -1 || dHead->v_Type == (VehicleType)prefType)) {
 
             float dist = calculateDistance(dHead->loc.x, dHead->loc.y, p_x, p_y);
 
@@ -205,7 +205,7 @@ int requestRide(Driver *dHead, Passenger *pHead, Booking **bHead, int p_id, int 
     int ret_val;
     if(!findPassengerByID(pHead,p_id)){
         printf(" Passenger does not exist");
-        ret_val=-1;
+        return -1;
     }
     else{
         Driver* driver=findNearestVehicle(dHead,p_x,p_y,prefType);
@@ -222,8 +222,6 @@ int requestRide(Driver *dHead, Passenger *pHead, Booking **bHead, int p_id, int 
             new->next=*bHead;
             *bHead=new;
             ret_val=new->b_Id;
-
-            // date;
         }
         return ret_val;
     }
@@ -233,7 +231,7 @@ void completeRide(Driver *dHead, Passenger *pHead, Booking *bHead, int booking_i
     Booking* booking=findBookingByID(bHead,booking_id);
     booking->distance=distance;
     float fare;
-    if(booking->v_Type=Cab) fare=distance*10;
+    if(booking->v_Type==Cab) fare=distance*10;
     else fare=distance*5;
     Driver* driver=findDriverByID(dHead,booking->d_Id);
     driver->total_Earnings+=fare;
@@ -241,8 +239,6 @@ void completeRide(Driver *dHead, Passenger *pHead, Booking *bHead, int booking_i
     Passenger* pass=findPassengerByID(pHead,booking->p_Id);
     pass->frequency=pass->frequency+1;
     driver->d_Status=Free;
-
-    // date 
 }
 
 float calculateDriverEarnings(Driver *dHead, int d_id){
@@ -250,7 +246,6 @@ float calculateDriverEarnings(Driver *dHead, int d_id){
     return driver->total_Earnings;
 }
 void displayTopDrivers(Driver *dHead, Booking *bHead){
-    dHead=mergeSortDrivers(dHead);
     int count=0;
     while(dHead && count<5){
         printf("Driver ID:%d Name:%s Earnings:%.2f\n",dHead->d_Id,dHead->name,dHead->total_Earnings);
@@ -431,6 +426,7 @@ int main() {
             }
 
             case 5:
+                dHead = mergeSortDrivers(dHead);
                 displayTopDrivers(dHead, bHead);
                 break;
 
